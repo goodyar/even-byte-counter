@@ -25,6 +25,10 @@ public class RandomAccessWorker implements Runnable {
         this.doneSignal = doneSignal;
     }
 
+    /*
+     * Читаем с позиции startPosition сегмент, размером segmentSize, буферами с размером bufferSize.
+     */
+
     @Override
     public void run() {
         try {
@@ -51,11 +55,24 @@ public class RandomAccessWorker implements Runnable {
             readBuffer(buffer, bytesRead);
         }
 
-        position += buffer.length;
+        /*
+         * Сдвигаем курсор после последнего чтения и, если размер сегмента меньше буфера(chunks = 0),
+         * то readTail() дочитает остаток, равный в этом случае размеру сегмента, со startPosition.
+         */
+
+        if (chunks > 0) {
+            position += buffer.length;
+        } else {
+            position = startPosition;
+        }
     }
 
+    /*
+     * Если сегмент не поделился целочислено на размер буфера, то дочитываем остаток.
+     */
+
     private void readTail() throws IOException {
-        int tail = (int) (segmentSize % buffer.length); // 0 <= tail < buffer.length
+        int tail = (int) (segmentSize % buffer.length); // Всегда 0 <= tail <= buffer.length
 
         if (tail != 0) {
             byte[] tailBuffer = new byte[tail];

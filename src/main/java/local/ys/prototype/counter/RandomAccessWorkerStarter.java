@@ -16,10 +16,20 @@ class RandomAccessWorkerStarter {
         this.factory = factory;
     }
 
+    /*
+     * Делим файл на сегменты по количеству ядер.
+     */
+
     void run(int coreNumber, int bufferSize, String pathname) throws Exception {
         Instant startInstant, stopInstant;
         Counter counter = new Counter();
         CountDownLatch doneSignal = new CountDownLatch(coreNumber);
+
+        /*
+         *  Объект с интерфейсом RandomAccessFile порождается конкретной фабрикой
+         *  с интерфейсом RandomAccessFileFactory. Это не java.io.RandomAccessFile.
+         *  См. файл EvenByteCounter.
+         */
 
         try (RandomAccessFile file = factory.createRandomAccessFile(pathname)) {
             int lastCore = coreNumber - 1;
@@ -29,6 +39,7 @@ class RandomAccessWorkerStarter {
             startInstant = Instant.now();
             long startPosition;
 
+            // Запускаем для всех ядер, кроме последнего.
             for (int i = 0; i < lastCore; i++) {
                 startPosition = i * segmentSize;
                 RandomAccessWorker worker = new RandomAccessWorker(startPosition, segmentSize, bufferSize, counter,
@@ -37,8 +48,12 @@ class RandomAccessWorkerStarter {
                 thread.start();
             }
 
+            /*
+             * Если длина файла не делится целочисленно на количество ядер, то просто добавляем остаток
+             * к сегменту последнего ядра и запускаем. При 1000 ядрах остаток < 1k.
+             */
             startPosition = lastCore * segmentSize;
-            RandomAccessWorker worker = new RandomAccessWorker(startPosition, segmentSize + tail,
+            RandomAccessWorker worker = new RandomAccessWorker(startPosition, segmentSize + tail, // <--
                     bufferSize, counter, file, doneSignal);
             Thread thread = new Thread(worker);
             thread.start();
