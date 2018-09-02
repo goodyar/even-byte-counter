@@ -12,6 +12,12 @@ class WorkerStarter {
         this.factory = factory;
     }
 
+    /*
+     * Запускаем потоки по количеству ядер.
+     * Объект с интерфейсом File порождается конкретной фабрикой с интерфейсом FileFactory.
+     * См. в файле EvenByteCounter.
+     */
+
     void run(int coreNumber, int bufferSize, String pathname) throws Exception {
         Instant startInstant, stopInstant;
         Counter counter = new Counter();

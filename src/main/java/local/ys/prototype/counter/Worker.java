@@ -23,13 +23,17 @@ class Worker implements Runnable {
     public void run() {
         try {
             readFile();
-            counter.add(evenByteCounter);
+            counter.add(evenByteCounter); // Добавляем в счётчик.
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
             doneSignal.countDown();
         }
     }
+
+    /*
+     * Читаем файл с текущей позиции пока не кончится. Курсор сдвигают потоки по очереди.
+     */
 
     private void readFile() throws IOException {
         int bytesReade;
