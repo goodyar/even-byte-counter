@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-class NIOFile implements File {
+class NIOFile implements File, RandomAccessFile {
 
     private final FileChannel fileChannel;
 
@@ -15,6 +15,11 @@ class NIOFile implements File {
     @Override
     public int read(byte[] buffer) throws IOException {
         return fileChannel.read(ByteBuffer.wrap(buffer));
+    }
+
+    @Override
+    public int read(byte[] buffer, long position) throws IOException {
+        return fileChannel.read(ByteBuffer.wrap(buffer), position);
     }
 
     @Override
